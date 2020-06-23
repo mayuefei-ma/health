@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.itheima.dao.SetmealDao">
+    <!--插入检查项数据-->
+    <insert id="add" parameterType="Setmeal">
+        <!--通过mybatis框架提供的selectKey标签获得自增产生的ID值-->
+        <selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+            select LAST_INSERT_ID()
+        </selectKey>
+        insert into t_setmeal (code,name,sex,age,helpCode,price,remark,attention,img)
+                      values
+        (#{code},#{name},#{sex},#{age},#{helpCode},#{price},#{remark},#{attention},#{img})
+    </insert>
+    <!--设置检查组和检查项多对多关系-->
+    <insert id="setCheckGroupAndSetmeal" parameterType="map">
+        insert into t_setmeal_checkgroup(setmeal_id,checkgroup_id)
+        values
+        (#{setmealId},#{checkgroupId})
+    </insert>
+
+    <!--分页-->
+    <select id="findByCondition" parameterType="String" resultType="Setmeal">
+        select * from t_setmeal
+        <if test="value!=null and value.length>0">
+            where code like concat(concat('%',#{value}),'%')or name like concat(concat('%',#{value}),'%')or helpCode like concat(concat('%',#{value}),'%')
+
+        </if>
+    </select>
+
+    <!--根据套餐id删除中间表数据（清理原有关联关系）-->
+    <delete id="deleteAssociation" parameterType="int">
+        delete from t_setmeal_checkgroup where setmeal_id=#{id}
+    </delete>
+
+    <!--删除套餐-->
+    <delete id="delete" parameterType="int">
+        delete from t_setmeal where id=#{id}
+    </delete>
+
+    <!--查询套餐列表数据-->
+    <select id="findAll" resultType="Setmeal">
+        select * from t_setmeal
+    </select>
+
+    <!--根据id查询套餐-->
+    <select id="findById" parameterType="int" resultType="Setmeal">
+        select * from t_setmeal where id=#{id}
+    </select>
+
+    <select id="findSetmealCount" resultType="map">
+        SELECT s.`name`,COUNT(o.id) value from t_order o, t_setmeal s where o.setmeal_id =s.id GROUP BY s.name
+    </select>
+</mapper>
